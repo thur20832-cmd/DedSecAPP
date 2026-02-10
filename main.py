@@ -1,74 +1,75 @@
 from kivy.app import App
-from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.button import Button
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.graphics import Color, Rectangle
+from kivy.uix.button import Button
+from kivy.core.window import Window
 from kivy.clock import Clock
+import random
 
-class LoginScreen(Screen):
+# Definindo a cor de fundo preta
+Window.clearcolor = (0, 0, 0, 1)
+
+class DedSecApp(BoxLayout):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        layout = BoxLayout(orientation='vertical', padding=20, spacing=10)
-        layout.add_widget(Label(text="DEDSEC - NETHACK AUTH", font_size=30, color=(0, 1, 0, 1)))
-        self.key_input = TextInput(hint_text="Chave de Operativo", password=True, multiline=False)
-        layout.add_widget(self.key_input)
-        btn_entrar = Button(text="AUTENTICAR", background_color=(0, 0.7, 0, 1))
-        btn_entrar.bind(on_press=self.verificar_chave)
-        layout.add_widget(btn_entrar)
-        self.add_widget(layout)
+        super().__init__(orientation='vertical', padding=20, spacing=15)
+        
+        # Logo Estilizado
+        self.logo = Label(
+            text="[DED SEC]", 
+            font_size='50sp',
+            color=(0, 1, 0, 1), # Verde Neon
+            markup=True,
+            bold=True
+        )
+        self.add_widget(self.logo)
 
-    def verificar_chave(self, instance):
-        if self.key_input.text == "DEDSEC_MASTER_2024":
-            self.manager.current = 'nethack_main'
-        else:
-            self.key_input.hint_text = "ACESSO NEGADO"
-            self.key_input.text = ""
+        # Status do Sistema
+        self.status = Label(
+            text="STATUS: ENCRYPTED",
+            font_size='18sp',
+            color=(0.5, 0.5, 0.5, 1) # Cinza
+        )
+        self.add_widget(self.status)
 
-class NetHackMain(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.layout = FloatLayout()
-        self.layout.add_widget(Label(text="[ CAMERA FEED ATIVO ]", color=(0, 0.5, 0, 1)))
-        with self.layout.canvas.after:
-            Color(0, 1, 0, 0.1)
-            self.rect = Rectangle(size=(2000, 2000))
-        self.btn_hack = Button(text="SEGURE PARA ACESSAR", size_hint=(0.8, 0.15),
-                              pos_hint={'center_x': 0.5, 'y': 0.05}, background_color=(0, 0.3, 0, 1))
-        self.btn_hack.bind(on_press=self.iniciar_contagem)
-        self.btn_hack.bind(on_release=self.parar_contagem)
-        self.layout.add_widget(self.btn_hack)
-        self.tempo = 0
-        self.add_widget(self.layout)
+        # Botão de Interação
+        self.btn = Button(
+            text="INITIALIZE SCAN",
+            size_hint=(1, 0.2),
+            background_color=(0, 0.5, 0, 1),
+            color=(1, 1, 1, 1),
+            font_name='Roboto' # No Android ele pega a fonte padrão
+        )
+        self.btn.bind(on_press=self.start_scan)
+        self.add_widget(self.btn)
 
-    def iniciar_contagem(self, instance):
-        self.tempo = 0
-        Clock.schedule_interval(self.contar, 0.1)
+        # Console de Logs (Onde a mágica acontece)
+        self.console = Label(
+            text="> Waiting for command...",
+            font_size='14sp',
+            color=(0, 0.8, 0, 1),
+            halign='left',
+            valign='top',
+            text_size=(Window.width - 40, None)
+        )
+        self.add_widget(self.console)
 
-    def parar_contagem(self, instance):
-        Clock.unschedule(self.contar)
-        if self.tempo < 2.0:
-            self.btn_hack.text = "CANCELADO (SEGURE 2s)"
-            self.btn_hack.background_color = (0, 0.3, 0, 1)
+    def start_scan(self, instance):
+        self.console.text = "> Bypassing firewall...\n> Accessing ctOS node..."
+        self.status.text = "STATUS: BREACHING..."
+        self.status.color = (1, 0, 0, 1) # Muda pra vermelho
+        # Faz um efeito de log subindo
+        Clock.schedule_once(self.update_log, 1)
 
-    def contar(self, dt):
-        self.tempo += dt
-        progresso = int((self.tempo / 2.0) * 100)
-        self.btn_hack.text = f"ACESSANDO... {progresso}%"
-        if self.tempo >= 2.0:
-            self.btn_hack.text = "!!! SISTEMA DOMINADO !!!"
-            self.btn_hack.background_color = (1, 0, 0, 1)
-            return False
+    def update_log(self, dt):
+        ips = [f"192.168.0.{random.randint(1, 255)}" for _ in range(3)]
+        self.console.text += f"\n> Targets found: {', '.join(ips)}\n> Decrypting data..."
+        self.status.text = "STATUS: DATA EXTRACTED"
+        self.status.color = (0, 1, 1, 1) # Ciano
 
-class NetHackApp(App):
+class MainApp(App):
     def build(self):
-        sm = ScreenManager()
-        sm.add_widget(LoginScreen(name='login'))
-        sm.add_widget(NetHackMain(name='nethack_main'))
-        return sm
+        return DedSecApp()
 
-if __name__ == '__main__':
-    NetHackApp().run()
-
+if __name__ == "__main__":
+    MainApp().run()
+    
